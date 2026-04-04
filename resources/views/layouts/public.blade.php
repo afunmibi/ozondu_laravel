@@ -77,12 +77,22 @@
             <div class="row justify-content-center">
                 <div class="col-lg-8 text-center">
                     <h2 class="font-display mb-3">Stay Informed</h2>
-                    <p class="mb-4 opacity-75">Get latest updates on Ilare Ward developments delivered to your inbox.</p>
+                    <p class="mb-4 opacity-75">Get latest updates on Ilare Ward developments, community news, and government programs delivered to your inbox.</p>
+                    @if(session('success'))
+                        <div class="alert alert-light text-dark alert-dismissible fade show mx-auto" style="max-width:500px;">
+                            <i class="bi bi-check-circle-fill text-success me-2"></i>{{ session('success') }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    @endif
                     <form action="{{ route('subscribe') }}" method="POST" class="d-flex flex-column flex-sm-row gap-2 justify-content-center">
                         @csrf
-                        <input type="email" name="email" class="newsletter-input flex-grow-1" placeholder="Enter your email" required>
+                        <input type="email" name="email" class="newsletter-input flex-grow-1 @error('email') is-invalid @enderror" placeholder="Enter your email address" required>
                         <button type="submit" class="btn newsletter-btn text-white">Subscribe <i class="bi bi-arrow-right ms-2"></i></button>
                     </form>
+                    @error('email')
+                        <small class="text-danger mt-2">{{ $message }}</small>
+                    @enderror
+                    <p class="mt-3 small opacity-50">We respect your privacy. Unsubscribe anytime.</p>
                 </div>
             </div>
         </div>
@@ -95,26 +105,50 @@
                     <h4 class="font-display mb-3"><span style="color:var(--accent)">Ozon</span>du</h4>
                     <p class="opacity-75">Official platform of Hon. Muywa Adewale Ozondu, Councillor representing Ilare Ward in Obokun LGA.</p>
                     <div class="d-flex gap-2 mt-3">
-                        @foreach($socialLinks ?? [] as $link)<a href="{{ $link->url }}" target="_blank" class="social-btn" style="background:{{ $link->color }}"><i class="bi {{ $link->icon ?? 'bi-globe' }}"></i></a>@endforeach
+                        <a href="#" class="social-btn" style="background:#1877F2" title="Facebook"><i class="bi bi-facebook"></i></a>
+                        <a href="#" class="social-btn" style="background:#000" title="Twitter/X"><i class="bi bi-twitter-x"></i></a>
+                        <a href="https://wa.me/2348062305407" target="_blank" class="social-btn" style="background:#25D366" title="WhatsApp"><i class="bi bi-whatsapp"></i></a>
+                        <a href="#" class="social-btn" style="background:#0088CC" title="Telegram"><i class="bi bi-telegram"></i></a>
+                        <a href="#" class="social-btn" style="background:linear-gradient(45deg,#f09433,#dc2743,#cc2366)" title="Instagram"><i class="bi bi-instagram"></i></a>
+                    </div>
+                    <div class="mt-4">
+                        <p class="mb-1 small opacity-75"><i class="bi bi-phone me-2"></i>08062305407</p>
                     </div>
                 </div>
-                <div class="col-lg-4">
-                    <h6 class="fw-bold mb-3">Quick Links</h6>
+                <div class="col-lg-2 col-md-4">
+                    <h6 class="fw-bold mb-3">Navigation</h6>
                     <ul class="list-unstyled">
-                        <li class="mb-2"><a href="{{ url('/') }}">Home</a></li>
-                        <li class="mb-2"><a href="{{ route('blog.index') }}">News</a></li>
+                        <li class="mb-2"><a href="{{ url('/') }}"><i class="bi bi-chevron-right me-2"></i>Home</a></li>
+                        <li class="mb-2"><a href="{{ route('blog.index') }}"><i class="bi bi-chevron-right me-2"></i>Blog Posts</a></li>
+                        <li class="mb-2"><a href="{{ route('gallery.index') }}"><i class="bi bi-chevron-right me-2"></i>Gallery</a></li>
+                        <li class="mb-2"><a href="#subscribe"><i class="bi bi-chevron-right me-2"></i>Newsletter</a></li>
                     </ul>
                 </div>
-                <div class="col-lg-4">
-                    <h6 class="fw-bold mb-3">Connect</h6>
+                <div class="col-lg-3 col-md-4">
+                    <h6 class="fw-bold mb-3">Categories</h6>
+                    <ul class="list-unstyled">
+                        @forelse($categories ?? [] as $category)
+                        <li class="mb-2"><a href="{{ route('blog.index', ['category' => $category->slug]) }}"><i class="bi bi-folder me-2"></i>{{ $category->name }}</a></li>
+                        @empty
+                        <li class="mb-2 opacity-75">No categories yet</li>
+                        @endforelse
+                    </ul>
+                </div>
+                <div class="col-lg-3 col-md-4">
+                    <h6 class="fw-bold mb-3">Contact</h6>
                     <ul class="list-unstyled opacity-75">
                         <li class="mb-2"><i class="bi bi-geo-alt me-2"></i>Ilare Ward, Obokun LGA</li>
-                        <li class="mb-2"><i class="bi bi-envelope me-2"></i>info@ozondu.com</li>
+                        <li class="mb-2"><i class="bi bi-geo-alt me-2"></i>Osun State, Nigeria</li>
+                        <li class="mb-2"><i class="bi bi-phone me-2"></i>08062305407</li>
+                        <li class="mb-2"><i class="bi bi-envelope me-2"></i>admin@ozondu.com</li>
                     </ul>
                 </div>
             </div>
             <hr class="my-4 opacity-25">
-            <div class="text-center opacity-75"><p class="mb-0">&copy; {{ date('Y') }} Hon. Muywa Adewale Ozondu. All rights reserved.</p></div>
+            <div class="text-center opacity-75">
+                <p class="mb-2">&copy; {{ date('Y') }} Hon. Muywa Adewale Ozondu. All rights reserved.</p>
+                <p class="mb-0 small">Councillor representing Ilare Ward in Obokun LGA, Osun State</p>
+            </div>
         </div>
     </footer>
     

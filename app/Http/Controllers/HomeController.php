@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Post;
 use App\Models\Category;
 use App\Models\SocialLink;
+use App\Models\Slider;
 use Illuminate\Http\Request;
 
 class HomeController extends Controller
@@ -18,12 +19,7 @@ class HomeController extends Controller
             ->take(3)
             ->get();
 
-        $featuredImages = Post::published()
-            ->whereNotNull('featured_image')
-            ->with('category')
-            ->latest('published_at')
-            ->take(5)
-            ->get();
+        $sliders = Slider::active()->orderBy('sort_order')->orderByDesc('created_at')->take(5)->get();
 
         $galleryImages = \App\Models\Gallery::active()->images()->orderBy('sort_order')->orderByDesc('created_at')->take(8)->get();
         $galleryVideos = \App\Models\Gallery::active()->videos()->orderBy('sort_order')->orderByDesc('created_at')->take(4)->get();
@@ -43,7 +39,7 @@ class HomeController extends Controller
         $socialLinks = SocialLink::active()->get();
 
         return view('public.home', compact(
-            'featuredPosts', 'latestPosts', 'popularPosts', 'categories', 'socialLinks', 'featuredImages', 'galleryImages', 'galleryVideos'
+            'featuredPosts', 'latestPosts', 'popularPosts', 'categories', 'socialLinks', 'sliders', 'galleryImages', 'galleryVideos'
         ));
     }
 }

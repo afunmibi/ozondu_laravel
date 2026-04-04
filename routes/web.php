@@ -8,6 +8,7 @@ use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\GalleryController;
 use App\Http\Controllers\Admin\PostController;
+use App\Http\Controllers\Admin\SliderController;
 use App\Http\Controllers\Admin\SubscriberController as SubscriberAdminController;
 use Illuminate\Support\Facades\Route;
 
@@ -50,6 +51,17 @@ Route::prefix('admin')->middleware(['auth'])->group(function () {
     ]);
     
     Route::post('/galleries/{gallery}/toggle-status', [GalleryController::class, 'toggleStatus'])->name('admin.galleries.toggle-status');
+    
+    Route::resource('/sliders', SliderController::class)->names([
+        'index' => 'admin.sliders.index',
+        'create' => 'admin.sliders.create',
+        'store' => 'admin.sliders.store',
+        'edit' => 'admin.sliders.edit',
+        'update' => 'admin.sliders.update',
+        'destroy' => 'admin.sliders.destroy',
+    ]);
+    
+    Route::post('/sliders/{slider}/toggle-status', [SliderController::class, 'toggleStatus'])->name('admin.sliders.toggle-status');
     
     Route::get('/subscribers', [SubscriberAdminController::class, 'index'])->name('admin.subscribers.index');
     Route::get('/subscribers/export', [SubscriberAdminController::class, 'export'])->name('admin.subscribers.export');

@@ -32,6 +32,7 @@
         <li class="nav-item"><a href="{{ route('admin.categories.index') }}" class="nav-link {{ request()->routeIs('admin.categories.*') ? 'active' : '' }}"><i class="bi bi-folder me-2"></i>Categories</a></li>
         <li class="nav-item"><a href="{{ route('admin.subscribers.index') }}" class="nav-link {{ request()->routeIs('admin.subscribers.*') ? 'active' : '' }}"><i class="bi bi-people me-2"></i>Subscribers</a></li>
         <li class="nav-item"><a href="{{ route('admin.galleries.index') }}" class="nav-link {{ request()->routeIs('admin.galleries.*') ? 'active' : '' }}"><i class="bi bi-images me-2"></i>Gallery</a></li>
+        <li class="nav-item"><a href="{{ route('admin.sliders.index') }}" class="nav-link {{ request()->routeIs('admin.sliders.*') ? 'active' : '' }}"><i class="bi bi-collection me-2"></i>Hero Sliders</a></li>
         <li class="nav-item mt-4">
             <div class="mx-3 p-3 rounded" style="background: #25D366;">
                 <a href="https://wa.me/2348062305407" target="_blank" class="btn btn-light w-100 mb-2">

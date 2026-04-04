@@ -22,9 +22,8 @@
 <section class="hero-carousel">
     <div id="heroCarousel" class="carousel slide" data-bs-ride="carousel" data-bs-interval="5000">
         <div class="carousel-indicators">
-            @php $slides = $featuredImages->count() > 0 ? $featuredImages : collect([]); @endphp
-            @if($slides->count() > 0)
-                @foreach($slides as $index => $slide)
+            @if($sliders->count() > 0)
+                @foreach($sliders as $index => $slider)
                 <button type="button" data-bs-target="#heroCarousel" data-bs-slide-to="{{ $index }}" class="{{ $index === 0 ? 'active' : '' }}" aria-current="{{ $index === 0 ? 'true' : '' }}"></button>
                 @endforeach
             @else
@@ -32,18 +31,21 @@
             @endif
         </div>
         <div class="carousel-inner">
-            @if($slides->count() > 0)
-                @foreach($slides as $index => $slide)
+            @if($sliders->count() > 0)
+                @foreach($sliders as $index => $slider)
                 <div class="carousel-item {{ $index === 0 ? 'active' : '' }}">
-                    <div class="hero-slide" style="background-image: url('{{ Storage::url($slide->featured_image) }}');">
+                    <div class="hero-slide" style="background-image: url('{{ Storage::url($slider->image) }}');">
                         <div class="hero-overlay"></div>
                         <div class="container position-relative h-100">
                             <div class="row align-items-center h-100">
                                 <div class="col-lg-7 text-white">
-                                    <span class="badge bg-white text-dark mb-3 px-3 py-2">{{ $slide->category->name ?? 'News' }}</span>
-                                    <h1 class="font-display display-4 mb-3">{{ Str::limit($slide->title, 50) }}</h1>
-                                    <p class="lead mb-4 opacity-90">{{ Str::limit($slide->excerpt ?? strip_tags($slide->content), 150) }}</p>
-                                    <a href="{{ route('blog.show', $slide->slug) }}" class="btn btn-accent btn-lg">Read More <i class="bi bi-arrow-right ms-2"></i></a>
+                                    <h1 class="font-display display-4 mb-3">{{ $slider->title }}</h1>
+                                    @if($slider->subtitle)
+                                    <p class="lead mb-4 opacity-90">{{ $slider->subtitle }}</p>
+                                    @endif
+                                    @if($slider->button_text && $slider->button_url)
+                                    <a href="{{ $slider->button_url }}" class="btn btn-accent btn-lg">{{ $slider->button_text }} <i class="bi bi-arrow-right ms-2"></i></a>
+                                    @endif
                                 </div>
                             </div>
                         </div>
@@ -70,7 +72,7 @@
                 </div>
             @endif
         </div>
-        @if($slides->count() > 1)
+        @if($sliders->count() > 1)
         <button class="carousel-control-prev" type="button" data-bs-target="#heroCarousel" data-bs-slide="prev">
             <span class="carousel-control-prev-icon"></span>
         </button>
