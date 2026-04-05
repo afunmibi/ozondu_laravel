@@ -7,11 +7,15 @@ use Illuminate\Database\Eloquent\Model;
 class Gallery extends Model
 {
     protected $fillable = [
-        'type', 'title', 'description', 'file_path', 'video_url', 'status', 'sort_order'
+        'type', 'title', 'description', 'file_path', 'video_url', 'status', 'sort_order',
     ];
 
     protected $casts = [
-        'status' => 'boolean',
+        'sort_order' => 'integer',
+    ];
+
+    protected $attributes = [
+        'file_path' => 'gallery/placeholder.jpg',
     ];
 
     public function scopeActive($query)

@@ -13,6 +13,8 @@ class SocialLink extends Model
 
     protected $casts = ['is_active' => 'boolean'];
 
+    protected $attributes = ['name' => ''];
+
     public function scopeActive($query)
     {
         return $query->where('is_active', true)->orderBy('order');

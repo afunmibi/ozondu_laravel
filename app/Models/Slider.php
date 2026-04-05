@@ -7,11 +7,11 @@ use Illuminate\Database\Eloquent\Model;
 class Slider extends Model
 {
     protected $fillable = [
-        'title', 'subtitle', 'image', 'button_text', 'button_url', 'sort_order', 'status'
+        'title', 'subtitle', 'image', 'button_text', 'button_url', 'sort_order', 'status',
     ];
 
     protected $casts = [
-        'status' => 'boolean',
+        'sort_order' => 'integer',
     ];
 
     public function scopeActive($query)
