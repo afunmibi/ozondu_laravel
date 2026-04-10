@@ -27,8 +27,12 @@ class SliderController extends Controller
             'status' => 'required|in:active,inactive',
         ]);
 
-        $validated['status'] = $validated['status'] === 'active' ? 1 : 0;
-        $validated['sort_order'] = $validated['sort_order'] ?? 0;
+        $validated['status'] = $request->input('status') === 'active';
+        $validated['sort_order'] = $request->filled('sort_order')
+            ? $request->integer('sort_order')
+            : 0;
+        $validated['button_text'] = $request->filled('button_text') ? $validated['button_text'] : null;
+        $validated['button_url'] = $request->filled('button_url') ? $validated['button_url'] : null;
 
         if ($request->hasFile('image')) {
             $validated['image'] = $request->file('image')->store('sliders', 'public');
@@ -56,7 +60,12 @@ class SliderController extends Controller
 
         $validated = $request->validate($rules);
 
-        $validated['status'] = $validated['status'] === 'active' ? 1 : 0;
+        $validated['status'] = $request->input('status') === 'active';
+        $validated['sort_order'] = $request->filled('sort_order')
+            ? $request->integer('sort_order')
+            : 0;
+        $validated['button_text'] = $request->filled('button_text') ? $validated['button_text'] : null;
+        $validated['button_url'] = $request->filled('button_url') ? $validated['button_url'] : null;
 
         if ($request->hasFile('image')) {
             $validated['image'] = $request->file('image')->store('sliders', 'public');

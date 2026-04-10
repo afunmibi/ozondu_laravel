@@ -19,10 +19,25 @@ export function truncate(str, length = 100) {
     return str.length > length ? str.substring(0, length) + '...' : str;
 }
 
+function getStorageBaseUrl() {
+    if (typeof document === 'undefined') {
+        return '/storage';
+    }
+
+    const metaUrl = document
+        .querySelector('meta[name="storage-url"]')
+        ?.getAttribute('content');
+
+    return (metaUrl || '/storage').replace(/\/+$/, '');
+}
+
 export function getImageUrl(path) {
     if (!path || path === 'null' || path === 'undefined') return null;
     if (path.startsWith('http')) return path;
-    return '/storage/' + path;
+
+    const cleanPath = String(path).replace(/^\/+/, '');
+
+    return `${getStorageBaseUrl()}/${cleanPath}`;
 }
 
 export function getSocialShareUrls(post) {

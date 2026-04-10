@@ -171,7 +171,7 @@ export default function BlogPage() {
                                                     <img
                                                         src={getImageUrl(post.featured_image)}
                                                         alt={post.title}
-                                                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                                                        className="w-full h-full bg-gray-50 object-contain group-hover:scale-105 transition-transform duration-500"
                                                     />
                                                 ) : (
                                                     <div className="w-full h-full bg-gradient-to-br from-emerald-100 to-teal-100 flex items-center justify-center">

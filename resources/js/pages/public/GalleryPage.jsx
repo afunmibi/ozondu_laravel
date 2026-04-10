@@ -94,14 +94,14 @@ export default function GalleryPage() {
                                     <img
                                         src={getImageUrl(item.file_path)}
                                         alt={item.title}
-                                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                                        className="w-full h-full bg-gray-50 object-contain group-hover:scale-110 transition-transform duration-500"
                                     />
                                 ) : (
                                     <div className="w-full h-full bg-gray-900 flex items-center justify-center relative">
                                         {item.file_path ? (
                                             <video
                                                 src={getImageUrl(item.file_path)}
-                                                className="w-full h-full object-cover"
+                                                className="w-full h-full object-contain"
                                                 muted
                                                 onMouseOver={(e) => e.target.play()}
                                                 onMouseOut={(e) => { e.target.pause(); e.target.currentTime = 0; }}
@@ -110,7 +110,7 @@ export default function GalleryPage() {
                                             <img
                                                 src={getImageUrl(item.thumbnail)}
                                                 alt={item.title}
-                                                className="w-full h-full object-cover opacity-60"
+                                                className="w-full h-full object-contain opacity-60"
                                             />
                                         ) : (
                                             <div className="w-full h-full bg-gray-800 flex items-center justify-center">
@@ -154,13 +154,13 @@ export default function GalleryPage() {
                             <img
                                 src={getImageUrl(lightbox.file_path)}
                                 alt={lightbox.title}
-                                className="w-full h-auto max-h-[80vh] object-contain rounded-lg"
+                                className="w-full h-auto max-h-[80vh] rounded-lg object-contain"
                             />
                         ) : lightbox.file_path ? (
                             <video
                                 controls
                                 autoPlay
-                                className="w-full max-h-[80vh] rounded-lg"
+                                className="w-full max-h-[80vh] rounded-lg object-contain"
                             >
                                 <source src={getImageUrl(lightbox.file_path)} type="video/mp4" />
                                 Your browser does not support the video tag.

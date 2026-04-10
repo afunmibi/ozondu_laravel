@@ -3,10 +3,9 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\Post;
 use App\Models\Category;
+use App\Models\Post;
 use Illuminate\Http\Request;
-use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Auth;
 
 class PostController extends Controller
@@ -48,14 +47,16 @@ class PostController extends Controller
             'is_featured' => 'boolean',
         ]);
 
-        $validated['slug'] = Str::slug($request->title);
+        $validated['slug'] = Post::generateUniqueSlug($validated['title']);
         $validated['author_id'] = Auth::id();
+        $validated['category_id'] = (int) $validated['category_id'];
+        $validated['is_featured'] = $request->boolean('is_featured');
 
         if ($request->hasFile('featured_image')) {
             $validated['featured_image'] = $request->file('featured_image')->store('posts', 'public');
         }
 
-        if ($request->status === 'published') {
+        if ($validated['status'] === 'published') {
             $validated['published_at'] = now();
         }
 
@@ -82,13 +83,15 @@ class PostController extends Controller
             'is_featured' => 'boolean',
         ]);
 
-        $validated['slug'] = Str::slug($request->title);
+        $validated['slug'] = Post::generateUniqueSlug($validated['title'], $post->id);
+        $validated['category_id'] = (int) $validated['category_id'];
+        $validated['is_featured'] = $request->boolean('is_featured');
 
         if ($request->hasFile('featured_image')) {
             $validated['featured_image'] = $request->file('featured_image')->store('posts', 'public');
         }
 
-        if ($request->status === 'published' && !$post->published_at) {
+        if ($validated['status'] === 'published' && !$post->published_at) {
             $validated['published_at'] = now();
         }
 

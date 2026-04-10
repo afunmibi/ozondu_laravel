@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import FileUploadStatus from '../../components/ui/FileUploadStatus';
 import { postService, categoryService } from '../../services/api';
 import toast from 'react-hot-toast';
-import { Send } from 'lucide-react';
+import { Loader2, Send } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 export default function SubmitPostPage() {
@@ -153,17 +154,22 @@ export default function SubmitPostPage() {
                                 accept="image/*"
                                 onChange={(e) => setForm({ ...form, featured_image: e.target.files[0] })}
                                 className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                                disabled={submitting}
                             />
+                            <FileUploadStatus file={form.featured_image} isUploading={submitting} kind="image" />
                             <p className="text-sm text-gray-500 mt-1">Recommended size: 1200x800px, max 2MB</p>
                         </div>
 
                         <button
                             type="submit"
-                            disabled={submitting}
-                            className="w-full flex items-center justify-center px-6 py-4 bg-emerald-600 text-white font-semibold rounded-lg hover:bg-emerald-700 transition-colors disabled:opacity-50"
-                        >
+                        disabled={submitting}
+                        className="w-full flex items-center justify-center px-6 py-4 bg-emerald-600 text-white font-semibold rounded-lg hover:bg-emerald-700 transition-colors disabled:opacity-50"
+                    >
                             {submitting ? (
-                                'Submitting...'
+                                <>
+                                    <Loader2 size={20} className="mr-2 animate-spin" />
+                                    Uploading...
+                                </>
                             ) : (
                                 <>
                                     <Send size={20} className="mr-2" />

@@ -17,10 +17,19 @@ class DatabaseSeeder extends Seeder
     {
         // Create admin user (or update existing)
         $admin = User::updateOrCreate(
-            ['email' => 'admin@ozondu.com'],
+            ['email' => 'afunmibi@gmail.com'],
+            [
+                'name' => 'Afunmibi',
+                'password' => Hash::make('Ilare2026'),
+                'email_verified_at' => now(),
+            ]
+        );
+
+        User::updateOrCreate(
+            ['email' => 'amuyiwa20@gmail.com'],
             [
                 'name' => 'Hon. Muywa Adewale Ozondu',
-                'password' => Hash::make('password'),
+                'password' => Hash::make('Ilare2026'),
                 'email_verified_at' => now(),
             ]
         );
@@ -135,6 +144,7 @@ class DatabaseSeeder extends Seeder
         }
 
         $this->command->info('Database seeded successfully!');
-        $this->command->info('Admin login: admin@ozondu.com / password');
+        $this->command->info('Admin login: afunmibi@gmail.com / Ilare2026');
+        $this->command->info('Admin login: amuyiwa20@gmail.com / Ilare2026');
     }
 }

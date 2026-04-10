@@ -74,7 +74,7 @@ export default function HomePage() {
                             <img
                                 src={getImageUrl(slider.image)}
                                 alt={slider.title}
-                                className="w-full h-full object-cover"
+                                className="w-full h-full bg-gray-900 object-contain"
                             />
                             <div className="absolute inset-0 z-20 flex items-center">
                                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
@@ -152,7 +152,7 @@ export default function HomePage() {
                                                 <img
                                                     src={getImageUrl(post.featured_image)}
                                                     alt={post.title}
-                                                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                                                    className="w-full h-full bg-gray-50 object-contain group-hover:scale-105 transition-transform duration-500"
                                                 />
                                             ) : (
                                                 <div className="w-full h-full bg-gradient-to-br from-emerald-100 to-teal-100 flex items-center justify-center">
@@ -254,7 +254,7 @@ export default function HomePage() {
                                             <img
                                                 src={getImageUrl(post.featured_image)}
                                                 alt={post.title}
-                                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                                                className="w-full h-full bg-gray-50 object-contain group-hover:scale-105 transition-transform duration-500"
                                             />
                                         ) : (
                                             <div className="w-full h-full bg-gradient-to-br from-emerald-100 to-teal-100 flex items-center justify-center">
@@ -306,7 +306,7 @@ export default function HomePage() {
                                     <img
                                         src={getImageUrl(image.file_path)}
                                         alt={image.title}
-                                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                                        className="w-full h-full bg-gray-50 object-contain group-hover:scale-110 transition-transform duration-500"
                                     />
                                     <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors flex items-center justify-center">
                                         <span className="text-white opacity-0 group-hover:opacity-100 transition-opacity font-medium">

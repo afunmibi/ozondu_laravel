@@ -26,19 +26,46 @@ class Post extends Model
     protected static function boot()
     {
         parent::boot();
-        
+
         static::creating(function($post) {
-            $post->slug = Str::slug($post->title);
+            if (blank($post->slug)) {
+                $post->slug = static::generateUniqueSlug($post->title);
+            }
+
             if ($post->status === 'published' && !$post->published_at) {
                 $post->published_at = now();
             }
         });
-        
+
         static::updating(function($post) {
             if ($post->isDirty('status') && $post->status === 'published' && !$post->published_at) {
                 $post->published_at = now();
             }
         });
+    }
+
+    public static function generateUniqueSlug(string $title, ?int $ignoreId = null): string
+    {
+        $baseSlug = Str::slug($title);
+
+        if ($baseSlug === '') {
+            $baseSlug = 'post';
+        }
+
+        $slug = $baseSlug;
+        $counter = 2;
+
+        while (
+            static::query()
+                ->when($ignoreId, fn ($query) => $query->whereKeyNot($ignoreId))
+                ->where('slug', $slug)
+                ->exists()
+        ) {
+            $slug = $baseSlug.'-'.$counter;
+            $counter++;
+        }
+
+        return $slug;
     }
 
     public function category(): BelongsTo

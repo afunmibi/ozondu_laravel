@@ -21,7 +21,10 @@ class DashboardController extends Controller
             'total_subscribers' => Subscriber::where('status', 'active')->count(),
         ];
 
-        $recentPosts = Post::with(['category', 'author'])
+        $recentPosts = Post::with([
+            'category:id,name,slug,color',
+            'author:id,name,email',
+        ])
             ->latest()
             ->take(5)
             ->get();

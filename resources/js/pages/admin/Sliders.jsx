@@ -1,9 +1,18 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { sliderService } from '../../services/api';
+import FileUploadStatus from '../../components/ui/FileUploadStatus';
 import { getImageUrl } from '../../lib/utils';
 import toast from 'react-hot-toast';
-import { Plus, Edit2, Trash2, X, Image as ImageIcon, GripVertical, ToggleLeft, ToggleRight } from 'lucide-react';
+import { Plus, Edit2, Trash2, X, GripVertical, ToggleLeft, ToggleRight, Loader2 } from 'lucide-react';
+
+function isActiveStatus(value) {
+    return value === true || value === 1 || value === '1' || value === 'active';
+}
+
+function toSliderStatus(value) {
+    return isActiveStatus(value) ? 'active' : 'inactive';
+}
 
 export default function AdminSliders() {
     const queryClient = useQueryClient();
@@ -16,7 +25,6 @@ export default function AdminSliders() {
     });
 
     const sliders = data?.data || [];
-
     const createMutation = useMutation({
         mutationFn: sliderService.create,
         onSuccess: () => {
@@ -24,7 +32,7 @@ export default function AdminSliders() {
             toast.success('Slider created');
             closeModal();
         },
-        onError: () => toast.error('Failed to create'),
+        onError: (error) => toast.error(error.response?.data?.message || 'Failed to create'),
     });
 
     const updateMutation = useMutation({
@@ -34,8 +42,10 @@ export default function AdminSliders() {
             toast.success('Slider updated');
             closeModal();
         },
-        onError: () => toast.error('Failed to update'),
+        onError: (error) => toast.error(error.response?.data?.message || 'Failed to update'),
     });
+
+    const isSubmitting = createMutation.isPending || updateMutation.isPending;
 
     const deleteMutation = useMutation({
         mutationFn: sliderService.delete,
@@ -102,7 +112,7 @@ export default function AdminSliders() {
                                     <img
                                         src={getImageUrl(slider.image)}
                                         alt={slider.title}
-                                        className="w-full h-full object-cover"
+                                        className="w-full h-full bg-gray-50 object-contain"
                                     />
                                 </div>
                                 <div className="flex-1 min-w-0">
@@ -119,13 +129,13 @@ export default function AdminSliders() {
                                     <button
                                         onClick={() => toggleMutation.mutate(slider.id)}
                                         className={`px-3 py-1 rounded-full text-xs font-medium flex items-center ${
-                                            slider.status === 'active'
+                                            isActiveStatus(slider.status)
                                                 ? 'bg-emerald-100 text-emerald-700'
                                                 : 'bg-gray-100 text-gray-600'
                                         }`}
                                     >
-                                        {slider.status === 'active' ? <ToggleRight size={16} className="mr-1" /> : <ToggleLeft size={16} className="mr-1" />}
-                                        {slider.status}
+                                        {isActiveStatus(slider.status) ? <ToggleRight size={16} className="mr-1" /> : <ToggleLeft size={16} className="mr-1" />}
+                                        {isActiveStatus(slider.status) ? 'Active' : 'Inactive'}
                                     </button>
                                     <button onClick={() => openModal(slider)} className="p-2 text-gray-400 hover:text-blue-600">
                                         <Edit2 size={18} />
@@ -144,6 +154,7 @@ export default function AdminSliders() {
                 <SliderModal
                     slider={editingSlider}
                     onClose={closeModal}
+                    isSubmitting={isSubmitting}
                     onSuccess={() => {
                         closeModal();
                         queryClient.invalidateQueries({ queryKey: ['admin-sliders'] });
@@ -161,23 +172,30 @@ export default function AdminSliders() {
     );
 }
 
-function SliderModal({ slider, onClose, onSuccess, onSubmit }) {
+function SliderModal({ slider, onClose, isSubmitting, onSuccess, onSubmit }) {
     const [form, setForm] = useState({
         title: slider?.title || '',
         subtitle: slider?.subtitle || '',
         button_text: slider?.button_text || '',
         button_url: slider?.button_url || '',
-        sort_order: slider?.sort_order || '',
-        status: slider?.status || 'active',
+        sort_order: slider?.sort_order ?? '',
+        status: toSliderStatus(slider?.status),
         image: null,
     });
-    const [loading, setLoading] = useState(false);
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        setLoading(true);
-        onSubmit(form, !!slider);
-        setLoading(false);
+
+        if (isSubmitting) {
+            return;
+        }
+
+        onSubmit({
+            ...form,
+            button_text: form.button_text.trim() || null,
+            button_url: form.button_url.trim() || null,
+            sort_order: form.sort_order === '' ? null : Number(form.sort_order),
+        }, !!slider);
     };
 
     return (
@@ -271,16 +289,25 @@ function SliderModal({ slider, onClose, onSuccess, onSubmit }) {
                             onChange={(e) => setForm({ ...form, image: e.target.files[0] })}
                             className="w-full"
                             required={!slider}
+                            disabled={isSubmitting}
                         />
+                        <FileUploadStatus file={form.image} isUploading={isSubmitting} kind="image" />
                         {slider?.image && (
-                            <img src={getImageUrl(slider.image)} alt="" className="mt-2 h-32 w-full object-cover rounded" />
+                            <img src={getImageUrl(slider.image)} alt="" className="mt-2 h-32 w-full rounded bg-gray-50 object-contain" />
                         )}
                     </div>
 
                     <div className="flex justify-end space-x-4 pt-4">
                         <button type="button" onClick={onClose} className="btn-secondary">Cancel</button>
-                        <button type="submit" disabled={loading} className="btn-primary">
-                            {loading ? 'Saving...' : (slider ? 'Update' : 'Create')}
+                        <button type="submit" disabled={isSubmitting} className="btn-primary inline-flex items-center justify-center">
+                            {isSubmitting ? (
+                                <>
+                                    <Loader2 size={18} className="mr-2 animate-spin" />
+                                    Uploading...
+                                </>
+                            ) : (
+                                slider ? 'Update' : 'Create'
+                            )}
                         </button>
                     </div>
                 </form>

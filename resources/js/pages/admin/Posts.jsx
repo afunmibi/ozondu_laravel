@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { postService, categoryService } from '../../services/api';
+import { postService } from '../../services/api';
+import FileUploadStatus from '../../components/ui/FileUploadStatus';
 import { getImageUrl, formatDate } from '../../lib/utils';
 import toast from 'react-hot-toast';
-import { Plus, Edit2, Trash2, Eye, Search, X, ToggleLeft, ToggleRight } from 'lucide-react';
+import { Plus, Edit2, Trash2, Eye, Search, X, ToggleLeft, ToggleRight, Loader2 } from 'lucide-react';
 
 export default function AdminPosts() {
     const queryClient = useQueryClient();
@@ -18,14 +19,9 @@ export default function AdminPosts() {
         queryFn: () => postService.getAll({ search, status, page }),
     });
 
-    const categoriesQuery = useQuery({
-        queryKey: ['admin-categories'],
-        queryFn: categoryService.getAll,
-    });
-
     const posts = data?.data?.posts?.data || [];
     const pagination = data?.data?.posts;
-    const categories = categoriesQuery.data?.data || [];
+    const categories = data?.data?.categories || [];
 
     const deleteMutation = useMutation({
         mutationFn: postService.delete,
@@ -129,7 +125,7 @@ export default function AdminPosts() {
                                                 <img
                                                     src={getImageUrl(post.featured_image)}
                                                     alt=""
-                                                    className="w-12 h-12 rounded-lg object-cover"
+                                                    className="w-12 h-12 rounded-lg bg-gray-50 object-contain"
                                                 />
                                                 <div>
                                                     <p className="font-medium text-gray-900 line-clamp-1">{post.title}</p>
@@ -233,7 +229,6 @@ export default function AdminPosts() {
 }
 
 function PostModal({ post, categories, onClose, onSuccess }) {
-    const queryClient = useQueryClient();
     const [form, setForm] = useState({
         title: post?.title || '',
         category_id: post?.category_id || '',
@@ -243,7 +238,6 @@ function PostModal({ post, categories, onClose, onSuccess }) {
         is_featured: post?.is_featured || false,
         featured_image: null,
     });
-    const [loading, setLoading] = useState(false);
 
     const mutation = useMutation({
         mutationFn: (data) => post ? postService.update(post.id, data) : postService.create(data),
@@ -254,16 +248,21 @@ function PostModal({ post, categories, onClose, onSuccess }) {
         onError: (err) => toast.error(err.response?.data?.message || 'Operation failed'),
     });
 
+    const isSubmitting = mutation.isPending;
+
     const handleSubmit = (e) => {
         e.preventDefault();
-        setLoading(true);
+
+        if (isSubmitting) {
+            return;
+        }
+
         // Convert boolean to 1/0 for FormData compatibility
         const formData = {
             ...form,
             is_featured: form.is_featured ? 1 : 0,
         };
         mutation.mutate(formData);
-        setLoading(false);
     };
 
     return (
@@ -344,9 +343,11 @@ function PostModal({ post, categories, onClose, onSuccess }) {
                             accept="image/*"
                             onChange={(e) => setForm({ ...form, featured_image: e.target.files[0] })}
                             className="w-full"
+                            disabled={isSubmitting}
                         />
+                        <FileUploadStatus file={form.featured_image} isUploading={isSubmitting} kind="image" />
                         {post?.featured_image && (
-                            <img src={getImageUrl(post.featured_image)} alt="" className="mt-2 h-32 object-cover rounded" />
+                            <img src={getImageUrl(post.featured_image)} alt="" className="mt-2 h-32 w-full rounded bg-gray-50 object-contain" />
                         )}
                     </div>
 
@@ -367,8 +368,15 @@ function PostModal({ post, categories, onClose, onSuccess }) {
                         <button type="button" onClick={onClose} className="btn-secondary">
                             Cancel
                         </button>
-                        <button type="submit" disabled={loading} className="btn-primary">
-                            {loading ? 'Saving...' : (post ? 'Update' : 'Create')}
+                        <button type="submit" disabled={isSubmitting} className="btn-primary inline-flex items-center justify-center">
+                            {isSubmitting ? (
+                                <>
+                                    <Loader2 size={18} className="mr-2 animate-spin" />
+                                    Uploading...
+                                </>
+                            ) : (
+                                post ? 'Update' : 'Create'
+                            )}
                         </button>
                     </div>
                 </form>

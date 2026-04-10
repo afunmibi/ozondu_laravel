@@ -6,13 +6,15 @@ use App\Http\Controllers\Controller;
 use App\Models\Category;
 use App\Models\Post;
 use Illuminate\Http\Request;
-use Illuminate\Support\Str;
 
 class PostController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Post::with(['category', 'author']);
+        $query = Post::with([
+            'category:id,name,slug,color',
+            'author:id,name,email',
+        ]);
 
         if ($request->status) {
             $query->where('status', $request->status);
@@ -37,7 +39,10 @@ class PostController extends Controller
 
     public function show($slug)
     {
-        $post = Post::with(['category', 'author'])
+        $post = Post::with([
+            'category:id,name,slug,color',
+            'author:id,name,email',
+        ])
             ->where('slug', $slug)
             ->firstOrFail();
 
@@ -57,6 +62,10 @@ class PostController extends Controller
 
     public function store(Request $request)
     {
+        if (! $request->user()) {
+            return response()->json(['message' => 'Unauthorized'], 401);
+        }
+
         $rules = [
             'title' => 'required|string|max:255',
             'category_id' => 'required|exists:categories,id',
@@ -72,14 +81,16 @@ class PostController extends Controller
 
         $validated = $request->validate($rules);
 
-        $validated['slug'] = Str::slug($request->title);
+        $validated['slug'] = Post::generateUniqueSlug($validated['title']);
         $validated['author_id'] = $request->user()->id;
+        $validated['category_id'] = (int) $validated['category_id'];
+        $validated['is_featured'] = $request->boolean('is_featured');
 
         if ($request->hasFile('featured_image')) {
             $validated['featured_image'] = $request->file('featured_image')->store('posts', 'public');
         }
 
-        if ($request->status === 'published') {
+        if ($validated['status'] === 'published') {
             $validated['published_at'] = now();
         }
 
@@ -105,7 +116,9 @@ class PostController extends Controller
 
         $validated = $request->validate($rules);
 
-        $validated['slug'] = Str::slug($request->title);
+        $validated['slug'] = Post::generateUniqueSlug($validated['title'], $post->id);
+        $validated['category_id'] = (int) $validated['category_id'];
+        $validated['is_featured'] = $request->boolean('is_featured');
 
         if ($request->hasFile('featured_image')) {
             $validated['featured_image'] = $request->file('featured_image')->store('posts', 'public');
@@ -113,7 +126,7 @@ class PostController extends Controller
             unset($validated['featured_image']);
         }
 
-        if ($request->status === 'published' && ! $post->published_at) {
+        if ($validated['status'] === 'published' && ! $post->published_at) {
             $validated['published_at'] = now();
         }
 
@@ -153,7 +166,7 @@ class PostController extends Controller
 
         $post = new Post;
         $post->title = $validated['title'];
-        $post->slug = Str::slug($validated['title'].'-'.time());
+        $post->slug = Post::generateUniqueSlug($validated['title']);
         $post->category_id = $validated['category_id'];
         $post->content = $validated['content'];
         $post->status = 'draft';

@@ -1,9 +1,18 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { galleryService } from '../../services/api';
+import FileUploadStatus from '../../components/ui/FileUploadStatus';
 import { getImageUrl } from '../../lib/utils';
 import toast from 'react-hot-toast';
-import { Plus, Edit2, Trash2, X, Image as ImageIcon, Video, ToggleLeft, ToggleRight, Play } from 'lucide-react';
+import { Plus, Edit2, Trash2, X, Image as ImageIcon, Video, ToggleLeft, ToggleRight, Play, Loader2 } from 'lucide-react';
+
+function isActiveStatus(value) {
+    return value === true || value === 1 || value === '1' || value === 'active';
+}
+
+function toGalleryStatus(value) {
+    return isActiveStatus(value) ? 'active' : 'inactive';
+}
 
 export default function AdminGalleries() {
     const queryClient = useQueryClient();
@@ -95,14 +104,14 @@ export default function AdminGalleries() {
                                         <img
                                             src={getImageUrl(item.file_path)}
                                             alt={item.title}
-                                            className="w-full h-full object-cover"
+                                            className="w-full h-full bg-gray-50 object-contain"
                                         />
                                     ) : (
                                         <div className="w-full h-full bg-gray-900 flex items-center justify-center relative">
                                             <img
                                                 src={getImageUrl(item.thumbnail)}
                                                 alt={item.title}
-                                                className="w-full h-full object-cover opacity-60"
+                                                className="w-full h-full bg-gray-900 object-contain opacity-60"
                                             />
                                             <Play size={32} className="absolute text-white" />
                                         </div>
@@ -127,10 +136,10 @@ export default function AdminGalleries() {
                                 <button
                                     onClick={() => toggleMutation.mutate(item.id)}
                                     className={`absolute top-2 right-2 p-1 rounded ${
-                                        item.status === 'active' ? 'bg-emerald-500' : 'bg-gray-400'
+                                        isActiveStatus(item.status) ? 'bg-emerald-500' : 'bg-gray-400'
                                     } text-white`}
                                 >
-                                    {item.status === 'active' ? <ToggleRight size={16} /> : <ToggleLeft size={16} />}
+                                    {isActiveStatus(item.status) ? <ToggleRight size={16} /> : <ToggleLeft size={16} />}
                                 </button>
                                 <div className="mt-2">
                                     <p className="text-sm font-medium text-gray-900 truncate">{item.title}</p>
@@ -164,9 +173,8 @@ function GalleryModal({ item, onClose, onSuccess }) {
         description: item?.description || '',
         file_path: null,
         video_url: item?.video_url || '',
-        status: item?.status || 'active',
+        status: toGalleryStatus(item?.status),
     });
-    const [loading, setLoading] = useState(false);
 
     const mutation = useMutation({
         mutationFn: (data) => item ? galleryService.update(item.id, data) : galleryService.create(data),
@@ -174,14 +182,31 @@ function GalleryModal({ item, onClose, onSuccess }) {
             toast.success(item ? 'Updated' : 'Created');
             onSuccess();
         },
-        onError: () => toast.error('Operation failed'),
+        onError: (error) => toast.error(error.response?.data?.message || 'Operation failed'),
     });
+
+    const isSubmitting = mutation.isPending;
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        setLoading(true);
-        mutation.mutate(form);
-        setLoading(false);
+        const trimmedDescription = form.description.trim();
+        const trimmedVideoUrl = form.video_url.trim();
+
+        if (form.type === 'image' && !form.file_path && !item?.file_path) {
+            toast.error('Select an image file before saving');
+            return;
+        }
+
+        if (form.type === 'video' && !form.file_path && !trimmedVideoUrl && !item?.file_path) {
+            toast.error('Add a video file or paste a video URL');
+            return;
+        }
+
+        mutation.mutate({
+            ...form,
+            description: trimmedDescription || null,
+            video_url: trimmedVideoUrl || null,
+        });
     };
 
     return (
@@ -198,7 +223,7 @@ function GalleryModal({ item, onClose, onSuccess }) {
                     <div className="flex gap-2">
                         <button
                             type="button"
-                            onClick={() => setForm({ ...form, type: 'image' })}
+                            onClick={() => setForm({ ...form, type: 'image', video_url: '' })}
                             className={`flex-1 py-2 rounded-lg flex items-center justify-center ${
                                 form.type === 'image' ? 'bg-emerald-100 text-emerald-700' : 'bg-gray-100'
                             }`}
@@ -247,9 +272,12 @@ function GalleryModal({ item, onClose, onSuccess }) {
                                 accept="image/*"
                                 onChange={(e) => setForm({ ...form, file_path: e.target.files[0] })}
                                 className="w-full"
+                                required={!item}
+                                disabled={isSubmitting}
                             />
+                            <FileUploadStatus file={form.file_path} isUploading={isSubmitting} kind="image" />
                             {item?.file_path && (
-                                <img src={getImageUrl(item.file_path)} alt="" className="mt-2 h-32 object-cover rounded" />
+                                <img src={getImageUrl(item.file_path)} alt="" className="mt-2 h-32 w-full rounded bg-gray-50 object-contain" />
                             )}
                         </div>
                     ) : (
@@ -261,9 +289,13 @@ function GalleryModal({ item, onClose, onSuccess }) {
                                     accept="video/*"
                                     onChange={(e) => setForm({ ...form, file_path: e.target.files[0] })}
                                     className="w-full"
+                                    disabled={isSubmitting}
                                 />
-                                {item?.type === 'video' && !form.file_path && (
+                                <FileUploadStatus file={form.file_path} isUploading={isSubmitting} kind="video" />
+                                {item?.type === 'video' && !form.file_path ? (
                                     <p className="text-xs text-gray-500 mt-1">Leave empty to keep current video</p>
+                                ) : (
+                                    <p className="text-xs text-gray-500 mt-1">Upload a file or paste a video URL below.</p>
                                 )}
                             </div>
                             <div className="relative">
@@ -274,6 +306,7 @@ function GalleryModal({ item, onClose, onSuccess }) {
                                     onChange={(e) => setForm({ ...form, video_url: e.target.value })}
                                     className="input-field pl-8"
                                     placeholder="Video URL (YouTube, Vimeo)"
+                                    disabled={isSubmitting}
                                 />
                             </div>
                         </div>
@@ -293,8 +326,15 @@ function GalleryModal({ item, onClose, onSuccess }) {
 
                     <div className="flex justify-end space-x-4 pt-4">
                         <button type="button" onClick={onClose} className="btn-secondary">Cancel</button>
-                        <button type="submit" disabled={loading} className="btn-primary">
-                            {loading ? 'Saving...' : (item ? 'Update' : 'Create')}
+                        <button type="submit" disabled={isSubmitting} className="btn-primary inline-flex items-center justify-center">
+                            {isSubmitting ? (
+                                <>
+                                    <Loader2 size={18} className="mr-2 animate-spin" />
+                                    Uploading...
+                                </>
+                            ) : (
+                                item ? 'Update' : 'Create'
+                            )}
                         </button>
                     </div>
                 </form>

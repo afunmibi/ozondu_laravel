@@ -12,6 +12,7 @@ class Slider extends Model
 
     protected $casts = [
         'sort_order' => 'integer',
+        'status' => 'boolean',
     ];
 
     public function scopeActive($query)

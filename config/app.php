@@ -54,6 +54,8 @@ return [
 
     'url' => env('APP_URL', 'http://localhost'),
 
+    'public_storage_url' => env('PUBLIC_STORAGE_URL'),
+
     /*
     |--------------------------------------------------------------------------
     | Application Timezone

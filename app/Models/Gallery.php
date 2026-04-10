@@ -12,6 +12,7 @@ class Gallery extends Model
 
     protected $casts = [
         'sort_order' => 'integer',
+        'status' => 'boolean',
     ];
 
     protected $attributes = [

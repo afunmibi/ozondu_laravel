@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Gallery;
 use Illuminate\Http\Request;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
 
 class GalleryController extends Controller
 {
@@ -23,6 +24,10 @@ class GalleryController extends Controller
 
     public function store(Request $request)
     {
+        if ($response = $this->invalidFileUploadResponse($request, 'file_path')) {
+            return $response;
+        }
+
         $rules = [
             'type' => 'required|in:image,video',
             'title' => 'required|string|max:255',
@@ -44,8 +49,11 @@ class GalleryController extends Controller
 
         $validated = $request->validate($rules);
 
-        $validated['status'] = $validated['status'] === 'active' ? 1 : 0;
-        $validated['sort_order'] = $validated['sort_order'] ?? 0;
+        $validated['status'] = $request->input('status') === 'active';
+        $validated['sort_order'] = $request->filled('sort_order')
+            ? $request->integer('sort_order')
+            : 0;
+        $validated['video_url'] = $request->filled('video_url') ? $validated['video_url'] : null;
 
         if ($request->hasFile('file_path')) {
             $validated['file_path'] = $request->file('file_path')->store('galleries', 'public');
@@ -58,6 +66,10 @@ class GalleryController extends Controller
 
     public function update(Request $request, Gallery $gallery)
     {
+        if ($response = $this->invalidFileUploadResponse($request, 'file_path')) {
+            return $response;
+        }
+
         $rules = [
             'type' => 'required|in:image,video',
             'title' => 'required|string|max:255',
@@ -77,7 +89,14 @@ class GalleryController extends Controller
 
         $validated = $request->validate($rules);
 
-        $validated['status'] = $validated['status'] === 'active' ? 1 : 0;
+        $validated['status'] = $request->input('status') === 'active';
+        $validated['video_url'] = $request->filled('video_url') ? $validated['video_url'] : null;
+
+        if ($request->exists('sort_order')) {
+            $validated['sort_order'] = $request->filled('sort_order')
+                ? $request->integer('sort_order')
+                : 0;
+        }
 
         if ($request->hasFile('file_path')) {
             $validated['file_path'] = $request->file('file_path')->store('galleries', 'public');
@@ -105,5 +124,35 @@ class GalleryController extends Controller
         $gallery->save();
 
         return response()->json($gallery);
+    }
+
+    private function invalidFileUploadResponse(Request $request, string $key)
+    {
+        $uploadedFile = $request->file($key);
+
+        if (! $uploadedFile instanceof UploadedFile || $uploadedFile->isValid()) {
+            return null;
+        }
+
+        $label = $request->input('type') === 'video' ? 'Video' : 'Image';
+
+        return response()->json([
+            'message' => $this->uploadErrorMessage($uploadedFile->getError(), $label),
+            'errors' => [
+                $key => [$this->uploadErrorMessage($uploadedFile->getError(), $label)],
+            ],
+        ], 422);
+    }
+
+    private function uploadErrorMessage(int $errorCode, string $label): string
+    {
+        return match ($errorCode) {
+            UPLOAD_ERR_INI_SIZE, UPLOAD_ERR_FORM_SIZE => $label.' upload failed because the file is larger than the server upload limit.',
+            UPLOAD_ERR_PARTIAL => $label.' upload was interrupted. Please try again.',
+            UPLOAD_ERR_NO_TMP_DIR => $label.' upload failed because the server temporary upload folder is missing.',
+            UPLOAD_ERR_CANT_WRITE => $label.' upload failed because the server could not write the file.',
+            UPLOAD_ERR_EXTENSION => $label.' upload was blocked by a server extension.',
+            default => $label.' upload failed before validation. Please check the file size and server upload settings.',
+        };
     }
 }

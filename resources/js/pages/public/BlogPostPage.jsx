@@ -124,7 +124,7 @@ export default function BlogPostPage() {
                         <img
                             src={getImageUrl(post.featured_image)}
                             alt={post.title}
-                            className="w-full h-auto max-h-[500px] object-cover"
+                            className="w-full h-auto max-h-[500px] bg-gray-50 object-contain"
                         />
                     </figure>
                 )}
@@ -198,7 +198,7 @@ export default function BlogPostPage() {
                                         <img
                                             src={getImageUrl(relatedPost.featured_image)}
                                             alt={relatedPost.title}
-                                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                                            className="w-full h-full bg-gray-50 object-contain group-hover:scale-105 transition-transform duration-500"
                                         />
                                     </div>
                                     <div className="p-4">
